@@ -47,7 +47,7 @@ All examples live under `src/main/java/com/threerive/patterns/<name>/` with matc
 
 | Pattern | Package | Entry types |
 | --- | --- | --- |
-| Adapter | `adapter` | `LegacyPaymentAdapter`, `PaymentProcessor` |
+| Adapter | `adapter` | `LegacyPaymentAdapter`, `SquarePegAdapter`, `RoundHole`, `PaymentProcessor` |
 | Bridge | `bridge` | `Circle`, `Renderer`, `VectorRenderer`, `RasterRenderer` |
 | Composite | `composite` | `File`, `Directory`, `FileSystemNode` |
 | Decorator | `decorator` | `Coffee`, `MilkDecorator`, `WhipDecorator` |
@@ -109,6 +109,13 @@ double area = circle.accept(new AreaVisitor());
 EmailMessage.builder().to("a@b.com").subject("Hi").body("...").build();
 ```
 
+**Adapter (round hole / square peg)**
+
+```java
+RoundHole hole = new RoundHole(5);
+hole.fits(new SquarePegAdapter(new SquarePeg(5)));
+```
+
 ## Configuration
 
 | File | Purpose |
@@ -116,10 +123,7 @@ EmailMessage.builder().to("a@b.com").subject("Hi").body("...").build();
 | `pom.xml` | Java 27, JUnit 5, preview compiler/test flags |
 | `.cursor/Dockerfile` | OpenJDK 27 + Maven for Cloud Agents |
 | `.github/workflows/maven.yml` | CI `mvn test` on push/PR |
-<<<<<<< HEAD
 | `.cursor/skills/java-27/` | Cursor Agent skill: Java 27 toolchain, preview APIs, repo conventions |
-=======
->>>>>>> origin/master
 
 ## License
 
