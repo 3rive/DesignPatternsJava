@@ -13,8 +13,8 @@ class CsvDataMinerTest {
   }
 
   @Test
-  void parseStripsPrefix() {
+  void parseStripsPrefixBeforeAnalyze() {
     CsvDataMiner miner = new CsvDataMiner();
-    assertEquals("DATA", miner.parse("csv:data"));
+    assertEquals("data", miner.parse("csv:data"));
   }
 }

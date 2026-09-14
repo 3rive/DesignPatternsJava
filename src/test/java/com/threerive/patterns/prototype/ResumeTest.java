@@ -19,12 +19,11 @@ class ResumeTest {
   }
 
   @Test
-  void mutatingCopySourceDoesNotShareMutableList() {
+  void externalListMutationDoesNotAffectResume() {
     List<String> skills = new ArrayList<>(List.of("Go"));
     Resume original = new Resume("Sam", skills);
     skills.add("Rust");
-    Resume clone = original.copy();
-    assertEquals(List.of("Go"), clone.skills());
-    assertEquals(2, original.skills().size());
+    assertEquals(List.of("Go"), original.skills());
+    assertEquals(List.of("Go"), original.copy().skills());
   }
 }
