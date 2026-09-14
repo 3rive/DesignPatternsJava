@@ -1,23 +1,20 @@
 # DesignPatternsJava
 
-Runnable examples of common design patterns in Java, with JUnit 5 tests and a Maven build. The project is set up for local development and [Cursor Cloud Agents](https://cursor.com/docs/cloud-agent/setup) via `.cursor/environment.json`.
+Runnable **Gang of Four (GoF)** design pattern examples in **Java 27**, plus a simple factory, dependency-injection sample, and JUnit 5 tests. Built with Maven and ready for [Cursor Cloud Agents](https://cursor.com/docs/cloud-agent/setup) via `.cursor/environment.json`.
 
 ## Requirements
 
-- **JDK 27** (OpenJDK 27+ recommended)
+- **JDK 27** (OpenJDK 27+)
 - **Apache Maven 3.8+**
 
-Preview features are enabled for examples that use Java 27 APIs (see below). Maven picks this up from `.mvn/jvm.config` and the compiler/surefire configuration in `pom.xml`.
+Preview features are enabled project-wide (`--enable-preview` in `pom.xml` and `.mvn/jvm.config`) for APIs such as `LazyConstant` ([JEP 531](https://openjdk.org/jeps/531)) used in some examples.
 
-### Cloud Agent image
-
-The Dockerfile under `.cursor/` installs OpenJDK 27 and Maven. After checkout, run:
+### Cloud Agent
 
 ```bash
-./scripts/cloud-agent-install.sh
+./scripts/cloud-agent-install.sh   # mvn dependency:resolve
+mvn test
 ```
-
-That script resolves Maven dependencies when `pom.xml` is present.
 
 ## Build and test
 
@@ -25,107 +22,101 @@ That script resolves Maven dependencies when `pom.xml` is present.
 mvn test
 ```
 
-Other useful commands:
+Run a single pattern’s tests:
 
 ```bash
-mvn -q -DskipTests package
-mvn -q test -Dtest=com.threerive.patterns.observer.StockTickerTest
+mvn -q test -Dtest=com.threerive.patterns.state.VendingMachineTest
 ```
 
-## Project layout
+## Package layout
 
-```
-src/main/java/com/threerive/
-├── HelloPatterns.java              # Minimal entry/smoke class
-└── patterns/
-    ├── singleton/                  # Java 27 (LazyConstant preview)
-    ├── factory/                    # Simple factory
-    ├── observer/                   # Observer (Java 21–compatible APIs)
-    ├── injection/                  # Dependency injection + composition root
-    └── builder/                    # Fluent builder for immutable products
-```
+All examples live under `src/main/java/com/threerive/patterns/<name>/` with matching tests under `src/test/java/...`.
 
-## Pattern catalog
+### Creational
 
-| Pattern | Package | Java | Summary |
-| --- | --- | --- | --- |
-| **Singleton** | `com.threerive.patterns.singleton` | 27 (preview) | One shared instance via `LazyConstant` ([JEP 531](https://openjdk.org/jeps/531)) |
-| **Factory** | `com.threerive.patterns.factory` | 27 | `NotificationFactory` creates `EMAIL` / `SMS` `Notification` products by `NotificationType` |
-| **Observer** | `com.threerive.patterns.observer` | 21+ | `StockTicker` notifies `StockObserver` implementations on price changes |
-| **Dependency injection** | `com.threerive.patterns.injection` | 27 (preview) | Constructor-injected `OrderService`; `ApplicationContext` wires dependencies with `LazyConstant` |
-| **Builder** | `com.threerive.patterns.builder` | 27 | Fluent `EmailMessage.Builder` constructs validated immutable `EmailMessage` instances |
+| Pattern | Package | Entry types |
+| --- | --- | --- |
+| Abstract Factory | `abstractfactory` | `ThemeFactory`, `DarkThemeFactory`, `LightThemeFactory` |
+| Builder | `builder` | `EmailMessage`, `EmailMessage.Builder` |
+| Factory Method | `factorymethod` | `DocumentCreator`, `PdfDocumentCreator`, `HtmlDocumentCreator` |
+| Prototype | `prototype` | `Resume`, `Prototype` |
+| Singleton | `singleton` | `Singleton` (`LazyConstant`) |
+| Simple Factory | `factory` | `NotificationFactory`, `NotificationType` |
 
-### Singleton
+### Structural
 
-- **Classes:** `Singleton`
-- **Tests:** `SingletonTest` (same instance, concurrent `getInstance`)
+| Pattern | Package | Entry types |
+| --- | --- | --- |
+| Adapter | `adapter` | `LegacyPaymentAdapter`, `PaymentProcessor` |
+| Bridge | `bridge` | `Circle`, `Renderer`, `VectorRenderer`, `RasterRenderer` |
+| Composite | `composite` | `File`, `Directory`, `FileSystemNode` |
+| Decorator | `decorator` | `Coffee`, `MilkDecorator`, `WhipDecorator` |
+| Facade | `facade` | `HomeTheaterFacade` |
+| Flyweight | `flyweight` | `GlyphFactory`, `Glyph` |
+| Proxy | `proxy` | `LazyImageProxy`, `Image` |
 
-```java
-Singleton instance = Singleton.getInstance();
-```
+### Behavioral
 
-### Factory
+| Pattern | Package | Entry types |
+| --- | --- | --- |
+| Chain of Responsibility | `chain` | `SupportHandler`, `BillingSupportHandler`, `TechnicalSupportHandler` |
+| Command | `command` | `Command`, `RemoteControl`, `LightOnCommand` |
+| Interpreter | `interpreter` | `Expression`, `AddExpression`, `NumberExpression` |
+| Iterator | `iterator` | `BookCollection`, `Book` |
+| Mediator | `mediator` | `ChatRoom`, `ChatMediator`, `ChatUser` |
+| Memento | `memento` | `Editor`, `EditorMemento` |
+| Observer | `observer` | `StockTicker`, `StockObserver`, `PercentChangeAlert` |
+| State | `state` | `VendingMachine`, `VendingState` |
+| Strategy | `strategy` | `ShoppingCart`, `PricingStrategy` |
+| Template Method | `templatemethod` | `DataMiner`, `CsvDataMiner` |
+| Visitor | `visitor` | `Shape`, `ShapeVisitor`, `AreaVisitor` |
 
-- **Classes:** `Notification`, `NotificationType`, `NotificationFactory`, `EmailNotification`, `SmsNotification`
-- **Tests:** `NotificationFactoryTest`
+### Related (not GoF)
 
-```java
-Notification email = NotificationFactory.create(NotificationType.EMAIL);
-String body = email.format("user@example.com", "Order shipped");
-```
+| Pattern | Package | Entry types |
+| --- | --- | --- |
+| Dependency Injection | `injection` | `OrderService`, `ApplicationContext` |
 
-### Observer
+## Quick examples
 
-- **Classes:** `StockTicker`, `StockObserver`, `StockPriceChange`, `PercentChangeAlert`
-- **Tests:** `StockTickerTest`
-
-Uses records and standard library types only (no preview flags required for this package).
+**Observer**
 
 ```java
 StockTicker ticker = new StockTicker();
-ticker.subscribe(change -> System.out.println(change.symbol() + " -> " + change.newPrice()));
-ticker.setPrice("ACME", 100.0);  // baseline
-ticker.setPrice("ACME", 110.0);  // observers notified
+ticker.subscribe(change -> System.out.println(change.newPrice()));
+ticker.setPrice("ACME", 100.0);
+ticker.setPrice("ACME", 110.0);
 ```
 
-### Builder
-
-- **Classes:** `EmailMessage` (nested `Builder`)
-- **Tests:** `EmailMessageTest`
+**Strategy**
 
 ```java
-EmailMessage message =
-    EmailMessage.builder()
-        .to("user@example.com")
-        .subject("Welcome")
-        .body("Thanks for signing up.")
-        .highPriority(true)
-        .build();
+ShoppingCart cart = new ShoppingCart(new TenPercentOffPricing());
+cart.addItem(100.0);
+cart.total();
 ```
 
-### Dependency injection
-
-- **Classes:** `OrderService`, `PaymentGateway`, `OrderRepository`, `ApplicationContext`, `ConsolePaymentGateway`, `InMemoryOrderRepository`
-- **Tests:** `OrderServiceTest` (fakes + composition root smoke test)
+**Visitor**
 
 ```java
-// Production-style wiring
-CheckoutResult result = ApplicationContext.orderService().checkout("order-1", 1999);
-
-// Test-style wiring
-OrderService service = new OrderService(fakeGateway, repository, Clock.fixed(instant, ZoneOffset.UTC));
+Shape circle = new Circle(2);
+double area = circle.accept(new AreaVisitor());
 ```
 
-## Configuration files
+**Builder**
+
+```java
+EmailMessage.builder().to("a@b.com").subject("Hi").body("...").build();
+```
+
+## Configuration
 
 | File | Purpose |
 | --- | --- |
-| `pom.xml` | Java 27 release, JUnit 5, preview-enabled compile/test |
-| `.mvn/jvm.config` | `--enable-preview` for the Maven JVM |
-| `.cursor/environment.json` | Cloud Agent environment name, Docker build, install script |
-| `.cursor/Dockerfile` | Ubuntu 24.04 + OpenJDK 27 + Maven |
-| `scripts/cloud-agent-install.sh` | Idempotent `mvn dependency:resolve` |
+| `pom.xml` | Java 27, JUnit 5, preview compiler/test flags |
+| `.cursor/Dockerfile` | OpenJDK 27 + Maven for Cloud Agents |
+| `.github/workflows/maven.yml` | CI `mvn test` on push/PR |
 
 ## License
 
-See repository defaults; add a `LICENSE` file if you intend to distribute this project.
+Add a `LICENSE` file if you distribute this project.
