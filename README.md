@@ -41,7 +41,8 @@ src/main/java/com/threerive/
     ├── singleton/                  # Java 27 (LazyConstant preview)
     ├── factory/                    # Simple factory
     ├── observer/                   # Observer (Java 21–compatible APIs)
-    └── injection/                  # Dependency injection + composition root
+    ├── injection/                  # Dependency injection + composition root
+    └── builder/                    # Fluent builder for immutable products
 ```
 
 ## Pattern catalog
@@ -52,6 +53,7 @@ src/main/java/com/threerive/
 | **Factory** | `com.threerive.patterns.factory` | 27 | `NotificationFactory` creates `EMAIL` / `SMS` `Notification` products by `NotificationType` |
 | **Observer** | `com.threerive.patterns.observer` | 21+ | `StockTicker` notifies `StockObserver` implementations on price changes |
 | **Dependency injection** | `com.threerive.patterns.injection` | 27 (preview) | Constructor-injected `OrderService`; `ApplicationContext` wires dependencies with `LazyConstant` |
+| **Builder** | `com.threerive.patterns.builder` | 27 | Fluent `EmailMessage.Builder` constructs validated immutable `EmailMessage` instances |
 
 ### Singleton
 
@@ -84,6 +86,21 @@ StockTicker ticker = new StockTicker();
 ticker.subscribe(change -> System.out.println(change.symbol() + " -> " + change.newPrice()));
 ticker.setPrice("ACME", 100.0);  // baseline
 ticker.setPrice("ACME", 110.0);  // observers notified
+```
+
+### Builder
+
+- **Classes:** `EmailMessage` (nested `Builder`)
+- **Tests:** `EmailMessageTest`
+
+```java
+EmailMessage message =
+    EmailMessage.builder()
+        .to("user@example.com")
+        .subject("Welcome")
+        .body("Thanks for signing up.")
+        .highPriority(true)
+        .build();
 ```
 
 ### Dependency injection
